@@ -1,20 +1,30 @@
-import streamlit as st
 from langchain_openai import ChatOpenAI
-from langchain.memory import ConversationBufferMemory
-from rag import query_index
-st.title("💬 T-Chat")
+from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain.schema import Document
+from retrievers import get_pinecone_retriever
+from langchain.chains.retrieval import create_retrieval_chain
 
-if "memory" not in st.session_state:
-  st.session_state.memory = ConversationBufferMemory()
+def get_chain():
+  llm = ChatOpenAI(model="gpt-4o", temperature=0)
 
-llm = ChatOpenAI(model="gpt-4o")
+  prompt = ChatPromptTemplate.from_messages([
+      ("system", "Answer the user query in 1 sentence based on the provided context: {context}"),
+      ("user", "{input}"),
+      MessagesPlaceholder(variable_name="chat_history")
+  ])
 
-user_input = st.text_input("You: ")
+  chain = create_stuff_documents_chain(llm, prompt)
 
-if st.button("Send"):
-    matching_docs = query_index(user_input)
-    st.session_state.memory.chat_memory.add_user_message(user_input)
-    complete_prompt = f"{user_input} \n History: {st.session_state.memory.load_memory_variables({})} \n Nutze folgende Informationen als Kontext wenn du nicht weiterkommst: {matching_docs}"
-    output = llm.invoke(complete_prompt).content
-    st.session_state.memory.chat_memory.add_ai_message(output)
-    st.write("Output:", output)
+  retriever = get_pinecone_retriever()
+  return create_retrieval_chain(retriever, chain)
+
+def stream_response(query, chat_history):
+  chain = get_chain()
+  for chunk in chain.stream({"input": query, "chat_history": chat_history}):
+    if "answer" in chunk:
+      yield chunk["answer"]
+
+if __name__ == "__main__":
+  for chunk in stream_response("Hi", []):
+      print(chunk, end='', flush=True)
