@@ -9,10 +9,15 @@ def get_chain():
   llm = ChatOpenAI(model="gpt-4o", temperature=0)
 
   prompt = ChatPromptTemplate.from_messages([
-      ("system", "Answer the user query in 1 sentence based on the provided context: {context}"),
+      ("system", "Du bist ein deutsche Mitarbeiter der T-Firma. Antworte auf die letzte Frage des Users in einem Satz basierend auf folgenden Kontext: {context}"),
       ("user", "{input}"),
       MessagesPlaceholder(variable_name="chat_history")
   ])
+
+  # Print the prompt template
+  print("--------------------\nPrompt Template:")
+  print(prompt.format(context="<context>", input="<input>", chat_history=[]))
+
 
   chain = create_stuff_documents_chain(llm, prompt)
 
