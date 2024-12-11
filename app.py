@@ -2,7 +2,7 @@ from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.schema import Document
-from retrievers import get_pinecone_retriever
+from retrievers import get_qdrant_retriever
 from langchain.chains.retrieval import create_retrieval_chain
 from langchain_core.tracers.context import tracing_v2_enabled
 
@@ -21,7 +21,7 @@ def get_chain():
 
   chain = create_stuff_documents_chain(llm, prompt)
 
-  retriever = get_pinecone_retriever()
+  retriever = get_qdrant_retriever()
   return create_retrieval_chain(retriever, chain)
 
 def stream_response(query, chat_history):
