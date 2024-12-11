@@ -5,6 +5,7 @@ from langchain.schema import Document
 from retrievers import get_pinecone_retriever
 from langchain.chains.retrieval import create_retrieval_chain
 from langchain_core.tracers.context import tracing_v2_enabled
+from retrievers import get_qdrant_retriever
 
 def get_chain():
   llm = ChatOpenAI(model="gpt-4o", temperature=0)
@@ -13,6 +14,7 @@ def get_chain():
       ("system", """
         Du bist ein deutsche Mitarbeiter der T-Firma. 
         Antworte auf die letzte Frage des Users in einem Satz basierend auf folgenden Kontext: {context}
+
        """),
       MessagesPlaceholder(variable_name="chat_history"),
       ("user", "{input}")
@@ -25,10 +27,9 @@ def get_chain():
 
 def stream_response(query, chat_history):
   chain = get_chain()
-  with tracing_v2_enabled():
-    for chunk in chain.stream({"input": query, "chat_history": chat_history}):
-      if "answer" in chunk:
-        yield chunk["answer"]
+  for chunk in chain.stream({"input": query, "chat_history": chat_history}):
+    if "answer" in chunk:
+      yield chunk["answer"]
 
 if __name__ == "__main__":
   for chunk in stream_response("Hi", []):
