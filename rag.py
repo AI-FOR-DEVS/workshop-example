@@ -1,6 +1,6 @@
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_openai import OpenAIEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_pinecone import PineconeVectorStore
 
 loader = PyPDFLoader("telekom_faq.pdf")
@@ -10,9 +10,9 @@ text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=20
 
 chunks = text_splitter.split_documents(docs)
 
-embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
-index_name = "tfaq"
+index_name = "tfaq2"
 
 def fill_index():
   PineconeVectorStore.from_documents(chunks, embeddings, index_name=index_name)
