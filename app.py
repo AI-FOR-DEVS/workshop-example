@@ -5,7 +5,6 @@ from langchain.schema import Document
 from retrievers import get_pinecone_retriever
 from langchain.chains.retrieval import create_retrieval_chain
 from langchain_core.tracers.context import tracing_v2_enabled
-from retrievers import get_qdrant_retriever
 
 def get_chain():
   llm = ChatOpenAI(model="gpt-4o", temperature=0)
